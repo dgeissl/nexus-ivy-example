@@ -1,0 +1,9 @@
+<ivysettings>
+    <properties file="${ivy.settings.dir}/ivysettings-file.properties" />
+    <settings defaultResolver="ibiblio" />
+    <caches  defaultCacheDir="${basedir}/build/cache" />
+    <resolvers>
+        <!-- using no maven metadata as they may be outdated du to ivy does not write then -->
+        <ibiblio name="ibiblio" m2compatible="true" useMavenMetadata="false" root="${ivy.repository.url}" />
+    </resolvers>
+</ivysettings>

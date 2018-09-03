@@ -1,0 +1,59 @@
+<project name="nexus-ivy-example" default="resolve-dynamic-local" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns="">
+
+    <property name="ivy.version" value="2.4.0" />
+
+    <target name="init-dirs">
+        <mkdir dir="lib" />
+        <mkdir dir="build" />
+        <mkdir dir="build/artifacts" />
+        <mkdir dir="build/distrib" />
+    </target>
+    <target name="check-for-ivy-jar">
+        <available file="lib/ivy-${ivy.version}.jar" property="ivy.jar.exists"/>
+    </target>
+
+    <target name="load-ivy-jar" depends="check-for-ivy-jar" unless="ivy.jar.exists">
+        <get src="https://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/${ivy.version}/ivy-${ivy.version}.jar" dest="lib/ivy-${ivy.version}.jar" />
+    </target>
+
+    <target name="init-ivy-tasks" depends="load-ivy-jar">
+        <path id="ivy.lib.path">
+            <fileset dir="lib" includes="ivy-${ivy.version}.jar"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                 uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+
+        <!-- disable maven-metadata usage -->
+        <ivy:configure file="ivysettings.xml" />
+        <ivy:cleancache />
+    </target>
+
+    <target name="resolve-dynamic" depends="init-dirs,init-ivy-tasks">
+        <fail message="missing property ${ivy.repository.url} either set it via '-Divy.repository.url=...' or use one of the targets 'resolve-dynamic-local' or 'resolve-dynamic-central'">
+            <condition>
+                <not>
+                    <isset property="ivy.repository.url" />
+                </not>
+            </condition>
+        </fail>
+        <ivy:resolve>
+            <ivy:dependency org="commons-logging" name="commons-logging" rev="1.+" conf="compile"/>
+        </ivy:resolve>
+    </target>
+
+    <target name="resolve-dynamic-central" depends="init-dirs,init-ivy-tasks">
+        <!-- does not work -->
+        <!--property name="ivy.repository.url" value="https://search.maven.org/classic/remotecontent?filepath=" /-->
+        <!-- does work -->
+        <property name="ivy.repository.url" value="https://repo1.maven.org/maven2/" />
+
+        <antcall target="resolve-dynamic" inheritall="true" />
+    </target>
+
+    <target name="resolve-dynamic-local" depends="init-dirs,init-ivy-tasks">
+        <property name="ivy.repository.url" value="http://localhost:8081/repository/maven-public/" />
+
+        <antcall target="resolve-dynamic" inheritall="true" />
+    </target>
+
+</project>
